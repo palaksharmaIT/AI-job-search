@@ -8,6 +8,12 @@ from app.database.base import Base
 class Job(Base):
     __tablename__ = "jobs"
 
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
+
     external_job_id: Mapped[str | None] = mapped_column(
         String(255),
         nullable=True,
@@ -16,11 +22,6 @@ class Job(Base):
 
     source: Mapped[str] = mapped_column(
         String(100)
-    )
-
-    external_job_id: Mapped[str | None] = mapped_column(
-        String(255),
-        nullable=True
     )
 
     company: Mapped[str] = mapped_column(
