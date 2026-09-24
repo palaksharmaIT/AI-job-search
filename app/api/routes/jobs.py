@@ -1,3 +1,13 @@
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+
+from app.database.connection import get_db
+from app.models.job import Job
+from app.schemas.job import JobCreate
+
+router = APIRouter(prefix="/jobs", tags=["Jobs"])
+
+
 @router.post("/")
 def create_job(
     job_data: JobCreate,
@@ -30,3 +40,57 @@ def create_job(
     db.refresh(job)
 
     return job
+
+
+@router.get("/")
+def get_jobs(
+    skill: str | None = None,
+    company: str | None = None,
+    location: str | None = None,
+    search: str | None = None,
+    db: Session = Depends(get_db)
+):
+    query = db.query(Job)
+
+    if skill:
+        query = query.filter(
+            Job.description.ilike(f"%{skill}%")
+        )
+
+    if company:
+        query = query.filter(
+            Job.company.ilike(f"%{company}%")
+        )
+
+    if location:
+        query = query.filter(
+            Job.location.ilike(f"%{location}%")
+        )
+
+    if search:
+        query = query.filter(
+            Job.title.ilike(f"%{search}%")
+        )
+
+    jobs = (
+        query
+        .order_by(Job.created_at.desc())
+        .all()
+    )
+
+    return {
+        "total": len(jobs),
+        "jobs": [
+            {
+                "id": job.id,
+                "source": job.source,
+                "external_job_id": job.external_job_id,
+                "company": job.company,
+                "title": job.title,
+                "location": job.location,
+                "job_url": job.job_url,
+                "apply_url": job.apply_url,
+            }
+            for job in jobs
+        ]
+    }

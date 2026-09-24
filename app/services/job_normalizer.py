@@ -1,6 +1,6 @@
 from app.collectors.greenhouse import get_greenhouse_jobs
 from app.models.job import Job
-from app.database import SessionLocal
+from app.database.connection import SessionLocal
 
 
 def import_greenhouse_jobs(board_token: str):
@@ -47,6 +47,10 @@ def import_greenhouse_jobs(board_token: str):
             "added": added,
             "skipped": skipped,
         }
+
+    except Exception:
+        db.rollback()
+        raise
 
     finally:
         db.close()
